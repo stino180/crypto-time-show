@@ -99,8 +99,8 @@ A real-time Bitcoin statistics dashboard inspired by [usdebtclock.org](https://w
 ## Running Locally
 
 ```bash
-# Web app
-cd webapp && npm install && npm run dev
+# Web app (from repo root)
+npm install && npm run dev
 
 # Backend (optional)
 cd backend && bun install && bun run dev
