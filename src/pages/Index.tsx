@@ -11,6 +11,7 @@ import { CensorshipResistanceSection } from "@/components/bitcoin/CensorshipResi
 import { EnergyEnvironmentSection } from "@/components/bitcoin/EnergyEnvironmentSection";
 import { SocialAdoptionSection } from "@/components/bitcoin/SocialAdoptionSection";
 import { TickerTape } from "@/components/bitcoin/TickerTape";
+import { BlogSection } from "@/components/bitcoin/BlogSection";
 import {
   useBitcoinData,
   calculateRemainingBTC,
@@ -301,6 +302,9 @@ const Index = () => {
 
           {/* Social & Adoption Pulse */}
           <SocialAdoptionSection data={adoptionData} isLive={hasLiveData} />
+
+          {/* AI News Blog */}
+          <BlogSection />
         </div>
 
         {/* Ticker Tape - Scrolling facts */}
