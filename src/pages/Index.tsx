@@ -302,6 +302,9 @@ const Index = () => {
 
           {/* Social & Adoption Pulse */}
           <SocialAdoptionSection data={adoptionData} isLive={hasLiveData} />
+
+          {/* AI News Blog */}
+          <BlogSection />
         </div>
 
         {/* Ticker Tape - Scrolling facts */}
