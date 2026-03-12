@@ -254,8 +254,8 @@ function Globe() {
       .then(async (topology) => {
         // Dynamically import topojson-client for conversion
         const topojson = await import('topojson-client');
-        const countries = topojson.feature(topology, topology.objects.countries);
-        setGeoData((countries as { features: GeoFeature[] }).features);
+        const countries = topojson.feature(topology, topology.objects.countries) as unknown as { features: GeoFeature[] };
+        setGeoData(countries.features);
       })
       .catch(err => console.error('Failed to load geo data:', err));
   }, []);
