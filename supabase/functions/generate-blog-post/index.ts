@@ -8,26 +8,50 @@ const corsHeaders = {
 };
 
 async function fetchNewsData(): Promise<string> {
-  try {
-    const res = await fetch("https://cryptocurrency.cv/api/news?limit=20");
-    if (!res.ok) throw new Error(`News API returned ${res.status}`);
-    const articles = await res.json();
+  const apis = [
+    {
+      url: "https://cryptocurrency.cv/api/news?limit=20",
+      parse: (data: any) => {
+        const items = Array.isArray(data) ? data : data?.data ?? data?.articles ?? data?.results ?? [];
+        if (!Array.isArray(items) || items.length === 0) return null;
+        return items.slice(0, 15).map(
+          (a: any, i: number) =>
+            `${i + 1}. "${a.title || "Untitled"}" — ${a.description || a.summary || a.body?.slice(0, 200) || "No description"} (Source: ${a.source?.name || a.source || a.feed || "Unknown"})`
+        ).join("\n");
+      },
+    },
+    {
+      url: "https://api.freecryptoapi.com/v1/getNews",
+      parse: (data: any) => {
+        const items = Array.isArray(data) ? data : data?.data ?? data?.articles ?? data?.news ?? [];
+        if (!Array.isArray(items) || items.length === 0) return null;
+        return items.slice(0, 15).map(
+          (a: any, i: number) =>
+            `${i + 1}. "${a.title || "Untitled"}" — ${a.description || a.summary || "No description"} (Source: ${a.source?.name || a.source || "Unknown"})`
+        ).join("\n");
+      },
+    },
+  ];
 
-    if (!Array.isArray(articles) || articles.length === 0) {
-      throw new Error("No news articles returned");
+  for (const api of apis) {
+    try {
+      console.log("Trying news API:", api.url);
+      const res = await fetch(api.url);
+      if (!res.ok) {
+        console.error(`News API ${api.url} returned ${res.status}`);
+        continue;
+      }
+      const data = await res.json();
+      console.log("News API response keys:", Object.keys(data));
+      const result = api.parse(data);
+      if (result) return result;
+      console.error("No articles parsed from", api.url);
+    } catch (e) {
+      console.error(`News API ${api.url} error:`, e);
     }
-
-    return articles
-      .slice(0, 15)
-      .map(
-        (a: any, i: number) =>
-          `${i + 1}. "${a.title || "Untitled"}" — ${a.description || a.summary || "No description"} (Source: ${a.source || "Unknown"})`
-      )
-      .join("\n");
-  } catch (e) {
-    console.error("Failed to fetch news:", e);
-    throw new Error("Could not fetch Bitcoin news headlines");
   }
+
+  throw new Error("Could not fetch Bitcoin news from any source");
 }
 
 async function fetchMarketData(): Promise<string> {
