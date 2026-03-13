@@ -7,6 +7,108 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function fetchNewsData(): Promise<string> {
+  try {
+    const res = await fetch("https://cryptocurrency.cv/api/news?limit=20");
+    if (!res.ok) throw new Error(`News API returned ${res.status}`);
+    const articles = await res.json();
+
+    if (!Array.isArray(articles) || articles.length === 0) {
+      throw new Error("No news articles returned");
+    }
+
+    return articles
+      .slice(0, 15)
+      .map(
+        (a: any, i: number) =>
+          `${i + 1}. "${a.title || "Untitled"}" — ${a.description || a.summary || "No description"} (Source: ${a.source || "Unknown"})`
+      )
+      .join("\n");
+  } catch (e) {
+    console.error("Failed to fetch news:", e);
+    throw new Error("Could not fetch Bitcoin news headlines");
+  }
+}
+
+async function fetchMarketData(): Promise<string> {
+  const results: string[] = [];
+
+  try {
+    const priceRes = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true"
+    );
+    if (priceRes.ok) {
+      const priceData = await priceRes.json();
+      const btc = priceData.bitcoin;
+      results.push(
+        `Price: $${btc.usd?.toLocaleString() ?? "N/A"}`,
+        `24h Change: ${btc.usd_24h_change?.toFixed(2) ?? "N/A"}%`,
+        `Market Cap: $${btc.usd_market_cap?.toLocaleString() ?? "N/A"}`,
+        `24h Volume: $${btc.usd_24h_vol?.toLocaleString() ?? "N/A"}`
+      );
+    }
+  } catch (e) {
+    console.error("CoinGecko error:", e);
+    results.push("Price data: unavailable");
+  }
+
+  try {
+    const [blockRes, feeRes, diffRes, mempoolRes] = await Promise.all([
+      fetch("https://mempool.space/api/blocks/tip/height"),
+      fetch("https://mempool.space/api/v1/fees/recommended"),
+      fetch("https://mempool.space/api/v1/difficulty-adjustment"),
+      fetch("https://mempool.space/api/mempool"),
+    ]);
+
+    if (blockRes.ok) {
+      const height = await blockRes.text();
+      results.push(`Block Height: ${height}`);
+    }
+    if (feeRes.ok) {
+      const fees = await feeRes.json();
+      results.push(
+        `Fees (sat/vB): Fast ${fees.fastestFee}, Medium ${fees.halfHourFee}, Slow ${fees.economyFee}`
+      );
+    }
+    if (diffRes.ok) {
+      const diff = await diffRes.json();
+      results.push(
+        `Difficulty Adjustment: ${diff.difficultyChange?.toFixed(2) ?? "N/A"}% in ${diff.remainingBlocks ?? "N/A"} blocks`
+      );
+    }
+    if (mempoolRes.ok) {
+      const mempool = await mempoolRes.json();
+      results.push(`Mempool: ${mempool.count ?? "N/A"} unconfirmed txs`);
+    }
+  } catch (e) {
+    console.error("Mempool error:", e);
+    results.push("Network data: partially unavailable");
+  }
+
+  // Try hashrate
+  try {
+    const hashRes = await fetch(
+      "https://mempool.space/api/v1/mining/hashrate/3d"
+    );
+    if (hashRes.ok) {
+      const hashData = await hashRes.json();
+      const latest = hashData.hashrates?.[hashData.hashrates.length - 1];
+      if (latest) {
+        const ehps = (latest.avgHashrate / 1e18).toFixed(2);
+        results.push(`Hashrate: ${ehps} EH/s`);
+      }
+      if (hashData.difficulty?.[0]) {
+        const diffT = (hashData.difficulty[0].difficulty / 1e12).toFixed(2);
+        results.push(`Difficulty: ${diffT}T`);
+      }
+    }
+  } catch (e) {
+    console.error("Hashrate error:", e);
+  }
+
+  return results.join("\n");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,8 +122,22 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Step 1: Use AI to generate a Bitcoin news summary
+    const body = await req.json().catch(() => ({}));
+    const type: "news" | "market" = body.type === "news" ? "news" : "market";
     const today = new Date().toISOString().split("T")[0];
+
+    let systemPrompt: string;
+    let userPrompt: string;
+
+    if (type === "news") {
+      const newsData = await fetchNewsData();
+      systemPrompt = `You are a Bitcoin news analyst. Today is ${today}. You will be given REAL news headlines fetched from cryptocurrency news sources. Your job is to summarize and analyze ONLY these provided stories. DO NOT invent any news events, regulatory announcements, or price predictions that are not in the provided data.`;
+      userPrompt = `Here are today's real Bitcoin news headlines:\n\n${newsData}\n\nWrite a compelling daily news briefing summarizing the most important stories above. Include a title and a 2-3 paragraph summary using markdown. Only discuss stories from the list above.`;
+    } else {
+      const marketData = await fetchMarketData();
+      systemPrompt = `You are a Bitcoin market and network analyst. Today is ${today}. You will be given REAL market and network data. Your job is to analyze ONLY this provided data. DO NOT invent prices, statistics, or events not present in the data. Provide insightful analysis of the numbers.`;
+      userPrompt = `Here is today's real Bitcoin market and network data:\n\n${marketData}\n\nWrite a daily market & network analysis report. Include a title and a 2-3 paragraph analysis using markdown. Only reference the data provided above.`;
+    }
 
     const aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -34,32 +150,22 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            {
-              role: "system",
-              content: `You are a Bitcoin news analyst. Generate a concise daily Bitcoin news briefing. Focus on: price movements, regulatory news, adoption milestones, mining updates, and macro factors. Be factual and neutral. Today's date is ${today}.`,
-            },
-            {
-              role: "user",
-              content: `Write a Bitcoin daily briefing for ${today}. Include a compelling title and a 2-3 paragraph summary of the most important Bitcoin developments. Format your response as a JSON object with "title" and "summary" fields. The summary should use markdown formatting.`,
-            },
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
           ],
           tools: [
             {
               type: "function",
               function: {
                 name: "create_blog_post",
-                description: "Create a Bitcoin news blog post",
+                description: "Create a Bitcoin blog post",
                 parameters: {
                   type: "object",
                   properties: {
-                    title: {
-                      type: "string",
-                      description: "Blog post title",
-                    },
+                    title: { type: "string", description: "Blog post title" },
                     summary: {
                       type: "string",
-                      description:
-                        "Blog post summary in markdown, 2-3 paragraphs",
+                      description: "Blog post summary in markdown, 2-3 paragraphs",
                     },
                   },
                   required: ["title", "summary"],
@@ -81,19 +187,13 @@ serve(async (req) => {
       if (status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limited, please try again later." }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (status === 402) {
         return new Response(
           JSON.stringify({ error: "Payment required for AI usage." }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const errorText = await aiResponse.text();
@@ -110,10 +210,9 @@ serve(async (req) => {
 
     const { title, summary } = JSON.parse(toolCall.function.arguments);
 
-    // Step 2: Store in database
     const { data, error } = await supabase
       .from("blog_posts")
-      .insert({ title, summary })
+      .insert({ title, summary, category: type })
       .select()
       .single();
 
@@ -122,7 +221,7 @@ serve(async (req) => {
       throw new Error(`Database error: ${error.message}`);
     }
 
-    console.log("Blog post created:", data.id);
+    console.log("Blog post created:", data.id, "category:", type);
 
     return new Response(JSON.stringify({ success: true, post: data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -130,13 +229,8 @@ serve(async (req) => {
   } catch (e) {
     console.error("generate-blog-post error:", e);
     return new Response(
-      JSON.stringify({
-        error: e instanceof Error ? e.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
