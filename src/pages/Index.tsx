@@ -257,6 +257,8 @@ const Index = () => {
           </div>
         </header>
 
+        <ThemeToggle />
+
         {/* Dashboard sections */}
         <div className="space-y-8 md:space-y-10">
           {/* Hero Section - Main stats */}
