@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { HeroSection } from "@/components/bitcoin/HeroSection";
 import { PriceChart } from "@/components/bitcoin/PriceChart";
 import { BitcoinGlobe } from "@/components/bitcoin/BitcoinGlobe";
@@ -255,6 +256,8 @@ const Index = () => {
             </div>
           </div>
         </header>
+
+        <ThemeToggle />
 
         {/* Dashboard sections */}
         <div className="space-y-8 md:space-y-10">

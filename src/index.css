@@ -8,58 +8,51 @@
 
 @layer base {
   :root {
-    /* Deep warm brown/black background like aged equipment */
-    --background: 20 15% 6%;
-    --foreground: 35 30% 85%;
+    /* Light mode - warm parchment/paper aesthetic */
+    --background: 35 30% 95%;
+    --foreground: 20 20% 15%;
 
-    /* Card styling - darker panels like instrument housings */
-    --card: 20 20% 8%;
-    --card-foreground: 35 30% 85%;
+    --card: 35 25% 92%;
+    --card-foreground: 20 20% 15%;
 
-    --popover: 20 20% 10%;
-    --popover-foreground: 35 30% 85%;
+    --popover: 35 25% 93%;
+    --popover-foreground: 20 20% 15%;
 
-    /* Primary - warm nixie orange/amber glow */
-    --primary: 25 100% 55%;
-    --primary-foreground: 20 15% 6%;
+    --primary: 25 90% 45%;
+    --primary-foreground: 35 30% 97%;
 
-    /* Secondary - aged brass/bronze */
-    --secondary: 35 40% 20%;
-    --secondary-foreground: 35 30% 85%;
+    --secondary: 35 20% 85%;
+    --secondary-foreground: 20 20% 20%;
 
-    /* Muted - dusty vintage feel */
-    --muted: 25 15% 15%;
-    --muted-foreground: 35 20% 50%;
+    --muted: 35 15% 88%;
+    --muted-foreground: 20 10% 45%;
 
-    /* Accent - warm copper highlight */
-    --accent: 15 80% 50%;
-    --accent-foreground: 35 30% 95%;
+    --accent: 15 70% 45%;
+    --accent-foreground: 35 30% 97%;
 
     --destructive: 0 70% 45%;
-    --destructive-foreground: 35 30% 95%;
+    --destructive-foreground: 35 30% 97%;
 
-    /* Border - aged metal/brass trim */
-    --border: 30 30% 18%;
-    --input: 30 30% 15%;
-    --ring: 25 100% 55%;
+    --border: 30 20% 80%;
+    --input: 30 20% 82%;
+    --ring: 25 90% 45%;
 
     --radius: 0.25rem;
 
-    /* Nixie tube glow colors */
-    --nixie-glow: 25 100% 55%;
-    --nixie-dim: 25 60% 30%;
-    --brass: 42 70% 45%;
-    --copper: 15 70% 40%;
-    --aged-metal: 35 15% 25%;
+    --nixie-glow: 25 90% 45%;
+    --nixie-dim: 25 40% 55%;
+    --brass: 42 50% 50%;
+    --copper: 15 50% 45%;
+    --aged-metal: 35 10% 60%;
 
-    --sidebar-background: 20 20% 8%;
-    --sidebar-foreground: 35 30% 85%;
-    --sidebar-primary: 25 100% 55%;
-    --sidebar-primary-foreground: 20 15% 6%;
-    --sidebar-accent: 35 40% 20%;
-    --sidebar-accent-foreground: 35 30% 85%;
-    --sidebar-border: 30 30% 18%;
-    --sidebar-ring: 25 100% 55%;
+    --sidebar-background: 35 25% 92%;
+    --sidebar-foreground: 20 20% 15%;
+    --sidebar-primary: 25 90% 45%;
+    --sidebar-primary-foreground: 35 30% 97%;
+    --sidebar-accent: 35 20% 85%;
+    --sidebar-accent-foreground: 20 20% 20%;
+    --sidebar-border: 30 20% 80%;
+    --sidebar-ring: 25 90% 45%;
   }
 
   .dark {
