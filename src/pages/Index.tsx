@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { HeroSection } from "@/components/bitcoin/HeroSection";
 import { PriceChart } from "@/components/bitcoin/PriceChart";
 import { BitcoinGlobe } from "@/components/bitcoin/BitcoinGlobe";
