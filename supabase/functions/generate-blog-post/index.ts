@@ -150,6 +150,27 @@ serve(async (req) => {
     const type: "news" | "market" = body.type === "news" ? "news" : "market";
     const today = new Date().toISOString().split("T")[0];
 
+    // Check if a post for this category already exists today
+    const { data: existingPosts, error: checkError } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("category", type)
+      .gte("published_at", `${today}T00:00:00.000Z`)
+      .lt("published_at", `${today}T23:59:59.999Z`)
+      .limit(1);
+
+    if (checkError) {
+      console.error("Check error:", checkError);
+      throw new Error(`Database check error: ${checkError.message}`);
+    }
+
+    if (existingPosts && existingPosts.length > 0) {
+      return new Response(
+        JSON.stringify({ error: `A ${type === "news" ? "news" : "market"} report has already been generated today. Check back tomorrow!` }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     let systemPrompt: string;
     let userPrompt: string;
 
