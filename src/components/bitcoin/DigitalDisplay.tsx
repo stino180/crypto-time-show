@@ -24,7 +24,6 @@ const sizeClasses = {
   xl: "text-2xl md:text-3xl lg:text-4xl",
 };
 
-// Easing function for smooth animation
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
 }
@@ -52,10 +51,7 @@ export function DigitalDisplay({
 
   const animateToValue = useCallback(
     (targetValue: number, fromValue: number) => {
-      if (transitionRef.current) {
-        cancelAnimationFrame(transitionRef.current);
-      }
-
+      if (transitionRef.current) cancelAnimationFrame(transitionRef.current);
       startValueRef.current = fromValue;
       targetValueRef.current = targetValue;
       startTimeRef.current = performance.now();
@@ -64,24 +60,15 @@ export function DigitalDisplay({
         const elapsed = currentTime - startTimeRef.current;
         const progress = Math.min(elapsed / transitionDuration, 1);
         const easedProgress = easeOutCubic(progress);
-
-        const newValue =
-          startValueRef.current +
-          (targetValueRef.current - startValueRef.current) * easedProgress;
-
+        const newValue = startValueRef.current + (targetValueRef.current - startValueRef.current) * easedProgress;
         setDisplayValue(newValue);
-
-        if (progress < 1) {
-          transitionRef.current = requestAnimationFrame(step);
-        }
+        if (progress < 1) transitionRef.current = requestAnimationFrame(step);
       };
-
       transitionRef.current = requestAnimationFrame(step);
     },
     [transitionDuration]
   );
 
-  // Initialize with the value immediately on first render
   useEffect(() => {
     if (!initializedRef.current) {
       setDisplayValue(value);
@@ -89,20 +76,15 @@ export function DigitalDisplay({
     }
   }, [value]);
 
-  // Handle value changes with smooth transition
   useEffect(() => {
     if (!initializedRef.current) return;
-
     if (smoothTransition && value !== displayValue) {
       animateToValue(value, displayValue);
     } else if (!smoothTransition && !animate) {
       setDisplayValue(value);
     }
-
     return () => {
-      if (transitionRef.current) {
-        cancelAnimationFrame(transitionRef.current);
-      }
+      if (transitionRef.current) cancelAnimationFrame(transitionRef.current);
     };
   }, [value, smoothTransition, animate, animateToValue]);
 
@@ -112,32 +94,22 @@ export function DigitalDisplay({
   });
 
   return (
-    <div
-      className={cn(
-        "inline-flex items-baseline gap-1 flex-wrap",
-        className
-      )}
-    >
+    <div className={cn("inline-flex items-baseline gap-1 flex-wrap", className)}>
       {prefix && (
-        <span className={cn(
-          "text-orange-300/70 font-['Nixie_One']",
-          sizeClasses[size]
-        )}>
+        <span className={cn("stpk-nixie-prefix font-['Nixie_One']", sizeClasses[size])}>
           {prefix}
         </span>
       )}
       <span
         className={cn(
-          "font-['Nixie_One'] tabular-nums text-orange-400",
-          "drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]",
-          "drop-shadow-[0_0_16px_rgba(251,146,60,0.5)]",
+          "font-['Nixie_One'] tabular-nums stpk-nixie",
           sizeClasses[size]
         )}
       >
         {formattedValue}
       </span>
       {suffix && (
-        <span className="text-amber-200/50 font-['Special_Elite'] text-[0.6em] uppercase tracking-wider ml-1">
+        <span className="stpk-nixie-suffix font-['Special_Elite'] text-[0.6em] uppercase tracking-wider ml-1">
           {suffix}
         </span>
       )}
@@ -158,17 +130,13 @@ export function CountdownDisplay({
   className,
 }: CountdownDisplayProps) {
   const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
+    days: 0, hours: 0, minutes: 0, seconds: 0,
   });
 
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
       const difference = targetDate.getTime() - now.getTime();
-
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -178,10 +146,8 @@ export function CountdownDisplay({
         });
       }
     };
-
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
-
     return () => clearInterval(timer);
   }, [targetDate]);
 
@@ -203,75 +169,31 @@ export function CountdownDisplay({
 
   return (
     <div className={cn("flex items-end gap-1 md:gap-2 flex-wrap", className)}>
-      {/* Days */}
-      <div className="flex flex-col items-center">
-        <span
-          className={cn(
-            "font-['Nixie_One'] tabular-nums text-orange-400 nixie-flicker",
-            "drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]",
-            textSizes[size]
+      {[
+        { value: timeLeft.days, label: "days" },
+        { value: padNumber(timeLeft.hours), label: "hrs" },
+        { value: padNumber(timeLeft.minutes), label: "min" },
+        { value: padNumber(timeLeft.seconds), label: "sec" },
+      ].map((item, i) => (
+        <div key={item.label} className="flex items-end gap-1 md:gap-2">
+          {i > 0 && (
+            <span className={cn("stpk-nixie-prefix font-['Nixie_One'] pb-4", textSizes[size])}>:</span>
           )}
-        >
-          {timeLeft.days}
-        </span>
-        <span className={cn("text-amber-200/40 font-['Special_Elite'] uppercase tracking-wider", labelSizes[size])}>
-          days
-        </span>
-      </div>
-
-      <span className={cn("text-orange-400/50 font-['Nixie_One'] pb-4", textSizes[size])}>:</span>
-
-      {/* Hours */}
-      <div className="flex flex-col items-center">
-        <span
-          className={cn(
-            "font-['Nixie_One'] tabular-nums text-orange-400 nixie-flicker",
-            "drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]",
-            textSizes[size]
-          )}
-        >
-          {padNumber(timeLeft.hours)}
-        </span>
-        <span className={cn("text-amber-200/40 font-['Special_Elite'] uppercase tracking-wider", labelSizes[size])}>
-          hrs
-        </span>
-      </div>
-
-      <span className={cn("text-orange-400/50 font-['Nixie_One'] pb-4", textSizes[size])}>:</span>
-
-      {/* Minutes */}
-      <div className="flex flex-col items-center">
-        <span
-          className={cn(
-            "font-['Nixie_One'] tabular-nums text-orange-400 nixie-flicker",
-            "drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]",
-            textSizes[size]
-          )}
-        >
-          {padNumber(timeLeft.minutes)}
-        </span>
-        <span className={cn("text-amber-200/40 font-['Special_Elite'] uppercase tracking-wider", labelSizes[size])}>
-          min
-        </span>
-      </div>
-
-      <span className={cn("text-orange-400/50 font-['Nixie_One'] pb-4", textSizes[size])}>:</span>
-
-      {/* Seconds */}
-      <div className="flex flex-col items-center">
-        <span
-          className={cn(
-            "font-['Nixie_One'] tabular-nums text-orange-400 nixie-flicker",
-            "drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]",
-            textSizes[size]
-          )}
-        >
-          {padNumber(timeLeft.seconds)}
-        </span>
-        <span className={cn("text-amber-200/40 font-['Special_Elite'] uppercase tracking-wider", labelSizes[size])}>
-          sec
-        </span>
-      </div>
+          <div className="flex flex-col items-center">
+            <span
+              className={cn(
+                "font-['Nixie_One'] tabular-nums stpk-nixie nixie-flicker",
+                textSizes[size]
+              )}
+            >
+              {item.value}
+            </span>
+            <span className={cn("stpk-sublabel font-['Special_Elite'] uppercase tracking-wider", labelSizes[size])}>
+              {item.label}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

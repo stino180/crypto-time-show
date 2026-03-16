@@ -197,16 +197,16 @@ const Index = () => {
   const hasLiveData = !isLoading && (price !== null || network !== null);
 
   return (
-    <div className="relative min-h-screen bg-stone-950 overflow-hidden">
-      {/* Warm ambient glow effects - like light from nixie tubes */}
+    <div className="relative min-h-screen bg-background overflow-hidden">
+      {/* Warm ambient glow effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/8 blur-[150px] rounded-full" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-600/6 blur-[120px] rounded-full" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-orange-400/4 blur-[180px] rounded-full" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 stpk-page-glow-1 blur-[150px] rounded-full" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 stpk-page-glow-2 blur-[120px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] stpk-page-glow-3 blur-[180px] rounded-full" />
       </div>
 
       {/* Subtle vignette effect */}
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+      <div className="fixed inset-0 pointer-events-none stpk-vignette" />
 
       {/* Subtle noise texture overlay */}
       <div
@@ -218,38 +218,34 @@ const Index = () => {
 
       {/* Main content */}
       <div className="relative z-10 px-4 md:px-8 py-6 md:py-8 max-w-[1800px] mx-auto">
-        {/* Header - vintage control panel style */}
+        {/* Header */}
         <header className="mb-8 md:mb-10">
           <div className="relative inline-block w-full">
-            {/* Brass plate backing */}
-            <div className="absolute -inset-2 bg-gradient-to-b from-amber-800/20 via-amber-900/10 to-amber-950/20 blur-md rounded-lg" />
+            <div className="absolute -inset-2 stpk-brass-plate blur-md rounded-lg" />
 
             <div className="relative text-center py-4">
-              {/* Main title */}
-              <h1 className="font-['Nixie_One'] text-3xl md:text-5xl lg:text-6xl tracking-[0.15em] text-orange-400 drop-shadow-[0_0_30px_rgba(251,146,60,0.5)]">
+              <h1 className="font-['Nixie_One'] text-3xl md:text-5xl lg:text-6xl tracking-[0.15em] stpk-heading">
                 BITCOIN CLOCK
               </h1>
 
-              {/* Decorative line with brass styling */}
               <div className="flex items-center justify-center gap-4 mt-3">
-                <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
-                <div className="w-2 h-2 rotate-45 bg-amber-600/40" />
-                <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
+                <div className="w-16 md:w-24 h-px stpk-trim" />
+                <div className="w-2 h-2 rotate-45 bg-amber-600/40 dark:bg-amber-600/40" />
+                <div className="w-16 md:w-24 h-px stpk-trim" />
               </div>
 
-              <p className="font-['Special_Elite'] text-xs md:text-sm text-amber-200/40 mt-3 tracking-[0.3em] uppercase">
+              <p className="font-['Special_Elite'] text-xs md:text-sm stpk-sublabel mt-3 tracking-[0.3em] uppercase">
                 Real-Time Network Statistics
               </p>
 
-              {/* Live indicator - styled like a small pilot light */}
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="relative">
-                  <div className={`w-2.5 h-2.5 rounded-full ${hasLiveData ? "bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,0.9)]" : "bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)]"}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${hasLiveData ? "stpk-pilot-on" : "stpk-pilot-off"}`} />
                   {hasLiveData && (
-                    <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-orange-400 animate-ping opacity-50" />
+                    <div className="absolute inset-0 w-2.5 h-2.5 rounded-full stpk-pilot-on animate-ping opacity-50" />
                   )}
                 </div>
-                <span className={`font-['Special_Elite'] text-[10px] md:text-xs uppercase tracking-[0.2em] ${hasLiveData ? "text-orange-400/70" : "text-amber-600/70"}`}>
+                <span className={`font-['Special_Elite'] text-[10px] md:text-xs uppercase tracking-[0.2em] ${hasLiveData ? "stpk-live-text" : "stpk-sublabel"}`}>
                   {isLoading ? "Connecting..." : hasLiveData ? "Live Feed" : "Cached Data"}
                 </span>
               </div>
@@ -261,7 +257,6 @@ const Index = () => {
 
         {/* Dashboard sections */}
         <div className="space-y-8 md:space-y-10">
-          {/* Hero Section - Main stats */}
           <HeroSection
             remainingBtc={heroData.remainingBtc}
             currentPrice={heroData.currentPrice}
@@ -270,73 +265,58 @@ const Index = () => {
             isLive={hasLiveData}
           />
 
-          {/* Price History Chart */}
           <PriceChart />
 
-          {/* Global BTC Distribution Globe */}
           <BitcoinGlobe />
 
-          {/* Two-column layout for middle sections on larger screens */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 md:gap-10">
-            {/* Scarcity Metrics */}
             <ScarcitySection data={scarcityData} />
-
-            {/* Network Health */}
             <NetworkHealthSection data={networkData} isLive={hasLiveData} />
           </div>
 
-          {/* Ownership Distribution */}
           <OwnershipSection data={SIMULATED_DATA.ownership} />
 
-          {/* Global Context */}
           <GlobalContextSection data={globalData} />
 
-          {/* Network Resilience - Decentralization stats */}
           <NetworkResilienceSection data={resilienceData} isLive={hasLiveData} />
 
-          {/* Hard Assets Comparison */}
           <HardAssetsSection data={hardAssetsData} />
 
-          {/* Censorship Resistance Stats */}
           <CensorshipResistanceSection data={censorshipData} isLive={hasLiveData} />
 
-          {/* Energy & Environment */}
           <EnergyEnvironmentSection data={energyData} />
 
-          {/* Social & Adoption Pulse */}
           <SocialAdoptionSection data={adoptionData} isLive={hasLiveData} />
 
-          {/* AI News Blog */}
           <BlogSection />
         </div>
 
-        {/* Ticker Tape - Scrolling facts */}
         <TickerTape className="mt-10 md:mt-14" />
 
-        {/* Footer - vintage plate style */}
+        {/* Footer */}
         <footer className="mt-10 md:mt-14 text-center pb-8">
           <div className="relative inline-block">
-            <div className="absolute -inset-1 bg-gradient-to-b from-amber-800/10 to-amber-950/10 blur-sm rounded-md" />
-            <div className="relative inline-flex flex-col sm:flex-row items-center gap-3 px-5 py-3 border border-amber-900/30 rounded-md bg-stone-950/80">
+            <div className="absolute -inset-1 stpk-brass-plate blur-sm rounded-md" />
+            <div className="relative inline-flex flex-col sm:flex-row items-center gap-3 px-5 py-3 stpk-footer rounded-md">
               <div className="flex items-center gap-3">
-                <span className="font-['Special_Elite'] text-[10px] md:text-xs text-orange-400/50 tracking-wide">
+                <span className="font-['Special_Elite'] text-[10px] md:text-xs stpk-footer-accent tracking-wide">
                   Price & Network: Live API
                 </span>
-                <span className="text-amber-700/30">|</span>
-                <span className="font-['Special_Elite'] text-[10px] md:text-xs text-amber-200/30 tracking-wide">
+                <span className="stpk-footer-divider">|</span>
+                <span className="font-['Special_Elite'] text-[10px] md:text-xs stpk-footer-text tracking-wide">
                   Ownership: Estimated
                 </span>
               </div>
               {lastUpdated && (
                 <>
-                  <span className="hidden sm:inline text-amber-700/30">|</span>
-                  <span className="font-['Special_Elite'] text-[10px] md:text-xs text-amber-200/30 tracking-wide">
+                  <span className="hidden sm:inline stpk-footer-divider">|</span>
+                  <span className="font-['Special_Elite'] text-[10px] md:text-xs stpk-footer-text tracking-wide">
                     Updated: {lastUpdated.toLocaleTimeString()}
                   </span>
                 </>
               )}
-              <span className="hidden sm:inline text-amber-700/30">|</span>
-              <span className="font-['Special_Elite'] text-[10px] md:text-xs text-orange-400/60 tracking-wider">
+              <span className="hidden sm:inline stpk-footer-divider">|</span>
+              <span className="font-['Special_Elite'] text-[10px] md:text-xs stpk-footer-accent tracking-wider">
                 21M FOREVER
               </span>
             </div>
