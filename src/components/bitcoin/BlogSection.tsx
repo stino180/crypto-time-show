@@ -1,10 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Newspaper, RefreshCw, Sparkles, TrendingUp, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Newspaper, TrendingUp, Globe } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 interface BlogPost {
@@ -29,52 +27,16 @@ const fetchBlogPosts = async (category: string): Promise<BlogPost[]> => {
 };
 
 const PostList = ({ category }: { category: string }) => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts", category],
     queryFn: () => fetchBlogPosts(category),
     staleTime: 1000 * 60 * 5,
   });
 
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("generate-blog-post", { body: { type: category } });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blog-posts", category] });
-      toast({ title: category === "news" ? "News briefing generated" : "Market report generated", description: "AI has analyzed the latest Bitcoin data." });
-    },
-    onError: (err: Error) => {
-      toast({ title: "Generation failed", description: err.message, variant: "destructive" });
-    },
-  });
-
   const EmptyIcon = category === "news" ? Globe : TrendingUp;
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => generateMutation.mutate()}
-          disabled={generateMutation.isPending}
-          className="stpk-btn font-['Special_Elite'] text-xs tracking-wide"
-        >
-          {generateMutation.isPending ? (
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-          ) : (
-            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-          )}
-          {generateMutation.isPending ? "Generating..." : category === "news" ? "Generate News" : "Generate Report"}
-        </Button>
-      </div>
-
       {isLoading ? (
         Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="stpk-article rounded-md p-4">
@@ -91,7 +53,7 @@ const PostList = ({ category }: { category: string }) => {
             {category === "news" ? "No news briefings yet" : "No market reports yet"}
           </p>
           <p className="font-['Special_Elite'] text-xs stpk-sublabel mt-1">
-            Click "Generate" to create an AI-powered {category === "news" ? "news summary" : "market analysis"}
+            Reports are generated automatically every day at 8:00 AM UTC
           </p>
         </div>
       ) : (
@@ -131,7 +93,7 @@ export const BlogSection = () => {
                 AI INTELLIGENCE
               </h2>
               <p className="font-['Special_Elite'] text-[10px] md:text-xs stpk-sublabel tracking-wider mt-0.5">
-                News & Market Analysis
+                Daily automated reports · Updated 8:00 AM UTC
               </p>
             </div>
           </div>
